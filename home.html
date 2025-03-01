@@ -46,11 +46,19 @@ window.onload = function () {
 
     if (window["WebSocket"]) {
         conn = new WebSocket("ws://localhost:8080/ws");
-        conn.onclose = function (evt) {
+        
+        conn.onopen = function(evt) {
             var item = document.createElement("div");
-            item.innerHTML = "<b>Connection closed.</b>";
+            item.innerHTML = "<b>Connection opened successfully.</b>";
             appendLog(item);
         };
+        
+        conn.onclose = function (evt) {
+            var item = document.createElement("div");
+            item.innerHTML = "<b>Connection closed. Code: " + evt.code + ", Reason: " + evt.reason + "</b>";
+            appendLog(item);
+        };
+        
         conn.onmessage = function (evt) {
             // 将接收到的数据转换为 Uint8Array
             var uint8Array = new Uint8Array(evt.data);
