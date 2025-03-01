@@ -29,16 +29,44 @@ window.onload = function () {
         if (!msg.value) {
             return false;
         }
-        conn.send(msg.value);
+        
+        // 创建 ChatMessage 对象
+        var chatMessage = {
+            sender: "YourSenderName", // 替换为实际发送者的名称
+            content: msg.value,
+            timestamp: Date.now() // 当前时间戳
+        };
+        
+        // 序列化消息为 Protobuf 格式
+        var serializedMessage = ChatMessage.encode(chatMessage).finish(); // 使用 Protobuf 编码
+        
+        try {
+            conn.send(serializedMessage);
+        } catch (error) {
+            console.error("Failed to send message:", error);
+            var item = document.createElement("div");
+            item.innerHTML = "<b>Failed to send message: " + error.message + "</b>";
+            appendLog(item);
+        }
         msg.value = "";
         return false;
     };
 
     if (window["WebSocket"]) {
         conn = new WebSocket("ws://" + document.location.host + "/ws");
+        conn.onopen = function() {
+            var item = document.createElement("div");
+            item.innerHTML = "<b>Connection established.</b>";
+            appendLog(item);
+        };
         conn.onclose = function (evt) {
             var item = document.createElement("div");
-            item.innerHTML = "<b>Connection closed.</b>";
+            item.innerHTML = "<b>Connection closed. Code: " + evt.code + ", Reason: " + evt.reason + "</b>";
+            appendLog(item);
+        };
+        conn.onerror = function(error) {
+            var item = document.createElement("div");
+            item.innerHTML = "<b>WebSocket error: " + error.message + "</b>";
             appendLog(item);
         };
         conn.onmessage = function (evt) {
